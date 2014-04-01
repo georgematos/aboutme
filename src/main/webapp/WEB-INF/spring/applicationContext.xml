@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- Conriguração do database.properties -->
+	<beans:bean	class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<beans:property name="location" value="WEB-INF/database.properties" />
+	</beans:bean>
+	
+	<!-- Spring Security INICIO -->
+	
+	<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	    <beans:property name="driverClassName" value="${database.driverClassName}" />
+	    <beans:property name="url" value="${database.url}" />
+	    <beans:property name="username" value="${database.username}" />
+	    <beans:property name="password" value="${database.password}" />
+	</beans:bean>
+	
+	<sec:http auto-config="true" access-denied-page="/negado">
+		<sec:form-login login-page="/" authentication-failure-url="/login?status=erro" default-target-url="/curriculo"/>
+		<sec:logout logout-success-url="/" />
+		<sec:intercept-url pattern="/mensagens" access="ROLE_USER" />
+		<sec:intercept-url pattern="/edicao-curriculo" access="ROLE_USER" />
+		<sec:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+	</sec:http>
+	
+	<sec:authentication-manager>
+	   	<sec:authentication-provider>
+	   		<sec:password-encoder hash="md5" />
+	      		<sec:jdbc-user-service 
+	      			data-source-ref="dataSource"
+		            users-by-username-query="SELECT email, senha, 'true' as enable FROM usuario WHERE email=?"
+		            authorities-by-username-query="SELECT email, authority FROM usuario WHERE email=?"
+		        />
+	   	</sec:authentication-provider>
+	</sec:authentication-manager>
+
+	<!-- FIM -->
+	
+</beans:beans>
